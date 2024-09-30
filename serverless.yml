@@ -1,0 +1,30 @@
+service: openai-lambda-service
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'dev'}
+  region: us-west-2
+  environment:
+    OPENAI_API_KEY: ${ssm:/openai/api-key}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - ssm:GetParameter
+          Resource: arn:aws:ssm:${aws:region}:${aws:accountId}:parameter/openai/api-key
+
+functions:
+  openaiFunction:
+    handler: src/handler.openaiHandler
+    events:
+      - http:
+          path: openai
+          method: post
+
+plugins:
+  - serverless-plugin-typescript
+
+package:
+  individually: true
